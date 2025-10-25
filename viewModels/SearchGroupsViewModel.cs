@@ -22,14 +22,12 @@ namespace CoursesDekstopApp.viewModels.Queries
         [ObservableProperty]
         private ObservableCollection<Group> _filteredGroups = new();
         
-        public ObservableCollection<Language> AvailableLanguages { get; set; }
-        public ObservableCollection<Teacher> AvailableTeachers { get; set; }
-        
+        public ObservableCollection<Language> AvailableLanguages { get; } = new();
+        public ObservableCollection<Teacher> AvailableTeachers { get; } = new();
+
         public SearchGroupsViewModel(ApplicationDbContext context)
         {
             _context = context;
-            AvailableLanguages = new ObservableCollection<Language>();
-            AvailableTeachers = new ObservableCollection<Teacher>();
         }
         
         [RelayCommand]

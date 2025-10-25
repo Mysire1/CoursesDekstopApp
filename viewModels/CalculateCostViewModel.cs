@@ -20,7 +20,7 @@ namespace CoursesDekstopApp.viewModels.Queries
         [ObservableProperty]
         private ObservableCollection<CostResult> _costBreakdown = new();
         
-        public ObservableCollection<Language> AvailableLanguages { get; set; }
+        public ObservableCollection<Language> AvailableLanguages { get; } = new();
         
         [ObservableProperty]
         private Language? _selectedLanguage;
@@ -28,7 +28,6 @@ namespace CoursesDekstopApp.viewModels.Queries
         public CalculateCostViewModel(ApplicationDbContext context)
         {
             _context = context;
-            AvailableLanguages = new ObservableCollection<Language>();
         }
         
         [RelayCommand]

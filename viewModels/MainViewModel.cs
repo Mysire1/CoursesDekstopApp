@@ -50,14 +50,6 @@ namespace CoursesDekstopApp.viewModels
             LargeGroupDiscount = largeGroupDiscount;
             Schedule = schedule;
             
-            SearchGroups.AvailableLanguages = this.Languages;
-            SearchGroups.AvailableTeachers = this.Teachers;
-            
-            CalculateCost.AvailableLanguages = this.Languages;
-            
-            Schedule.AvailableGroups = this.AllGroups;
-            Schedule.AvailableTeachers = this.Teachers;
-            
             _ = LoadBaseDataAsync();
         }
         #endregion
@@ -75,12 +67,25 @@ namespace CoursesDekstopApp.viewModels
         
         private async Task LoadBaseDataAsync()
         {
-             try
+            try
             {
-                UpdateObservableCollectionInternal(Students, await _context.Students.ToListAsync());
-                UpdateObservableCollectionInternal(Languages, await _context.Languages.ToListAsync());
-                UpdateObservableCollectionInternal(Teachers, await _context.Teachers.ToListAsync());
-                UpdateObservableCollectionInternal(AllGroups, await _context.Groups.Include(g => g.Teacher).ToListAsync());
+                var students = await _context.Students.ToListAsync();
+                var languages = await _context.Languages.ToListAsync();
+                var teachers = await _context.Teachers.ToListAsync();
+                var groups = await _context.Groups.Include(g => g.Teacher).ToListAsync();
+                
+                UpdateObservableCollectionInternal(Students, students);
+                UpdateObservableCollectionInternal(Languages, languages);
+                UpdateObservableCollectionInternal(Teachers, teachers);
+                UpdateObservableCollectionInternal(AllGroups, groups);
+                
+                UpdateObservableCollectionInternal(SearchGroups.AvailableLanguages, languages);
+                UpdateObservableCollectionInternal(SearchGroups.AvailableTeachers, teachers);
+
+                UpdateObservableCollectionInternal(CalculateCost.AvailableLanguages, languages);
+
+                UpdateObservableCollectionInternal(Schedule.AvailableGroups, groups);
+                UpdateObservableCollectionInternal(Schedule.AvailableTeachers, teachers);
             }
             catch (Exception ex)
             {
