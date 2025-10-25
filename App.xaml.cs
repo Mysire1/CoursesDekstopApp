@@ -39,17 +39,9 @@ namespace CoursesDekstopApp
                     services.AddSingleton<MainWindow>();
                     services.AddSingleton<MainViewModel>();
                     
-                    services.AddTransient<SearchGroupsViewModel>(provider =>
-                        new SearchGroupsViewModel(
-                            provider.GetRequiredService<ApplicationDbContext>(),
-                            provider.GetRequiredService<MainViewModel>().Languages,
-                            provider.GetRequiredService<MainViewModel>().Teachers
-                        ));
-                    services.AddTransient<CalculateCostViewModel>(provider =>
-                        new CalculateCostViewModel(
-                            provider.GetRequiredService<ApplicationDbContext>(),
-                            provider.GetRequiredService<MainViewModel>().Languages
-                        ));
+                    services.AddTransient<SearchGroupsViewModel>();
+                    services.AddTransient<CalculateCostViewModel>();
+                    
                     services.AddTransient<FailedExamsViewModel>();
                     services.AddTransient<TeachersByLanguageCountViewModel>();
                     services.AddTransient<StudentPaymentStatusViewModel>();
@@ -57,30 +49,39 @@ namespace CoursesDekstopApp
                     services.AddTransient<StudentsByLanguageViewModel>();
                     services.AddTransient<SmallGroupSurchargeViewModel>();
                     services.AddTransient<LargeGroupDiscountViewModel>();
-                    services.AddTransient<ScheduleViewModel>(provider =>
-                        new ScheduleViewModel(
-                            provider.GetRequiredService<ApplicationDbContext>(),
-                            provider.GetRequiredService<MainViewModel>().AllGroups,
-                            provider.GetRequiredService<MainViewModel>().Teachers
-                        ));
+                    services.AddTransient<ScheduleViewModel>();
                 })
                 .Build();
          }
 
         protected override async void OnStartup(StartupEventArgs e)
         {
-            await AppHost!.StartAsync();
+            try
+            {
+                await AppHost!.StartAsync();
+                
+                var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
+                
+                startupForm.Show();
 
-            var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
-            
-            startupForm.Show();
-
-            base.OnStartup(e);
+                base.OnStartup(e);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Виникла критична помилка під час запуску:\n\n{ex.ToString()}",
+                    "Помилка Запуску",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Error);
+                Shutdown();
+            }
         }
 
         protected override async void OnExit(ExitEventArgs e)
         {
-            await AppHost!.StopAsync();
+            if (AppHost != null)
+            {
+                await AppHost.StopAsync();
+            }
             base.OnExit(e);
         }
     }

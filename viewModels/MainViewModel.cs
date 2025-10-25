@@ -50,6 +50,14 @@ namespace CoursesDekstopApp.viewModels
             LargeGroupDiscount = largeGroupDiscount;
             Schedule = schedule;
             
+            SearchGroups.AvailableLanguages = this.Languages;
+            SearchGroups.AvailableTeachers = this.Teachers;
+            
+            CalculateCost.AvailableLanguages = this.Languages;
+            
+            Schedule.AvailableGroups = this.AllGroups;
+            Schedule.AvailableTeachers = this.Teachers;
+            
             _ = LoadBaseDataAsync();
         }
         #endregion

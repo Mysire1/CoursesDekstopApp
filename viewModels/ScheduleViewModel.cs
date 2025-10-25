@@ -22,16 +22,14 @@ namespace CoursesDekstopApp.viewModels.Queries
         
         [ObservableProperty]
         private ObservableCollection<Schedule> _scheduleResults = new();
-        public ObservableCollection<Group> AvailableGroups { get; }
-        public ObservableCollection<Teacher> AvailableTeachers { get; }
+        public ObservableCollection<Group> AvailableGroups { get; set; }
+        public ObservableCollection<Teacher> AvailableTeachers { get; set; }
         
-        public ScheduleViewModel(ApplicationDbContext context,
-                                 ObservableCollection<Group> groups,
-                                 ObservableCollection<Teacher> teachers)
+        public ScheduleViewModel(ApplicationDbContext context)
         {
             _context = context;
-            AvailableGroups = groups;
-            AvailableTeachers = teachers;
+            AvailableGroups = new ObservableCollection<Group>();
+            AvailableTeachers = new ObservableCollection<Teacher>();
         }
         
         [RelayCommand]
