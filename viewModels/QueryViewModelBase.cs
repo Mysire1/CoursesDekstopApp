@@ -1,6 +1,7 @@
 ﻿using CommunityToolkit.Mvvm.ComponentModel;
 using System.Windows;
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 
 namespace CoursesDekstopApp.viewModels.Queries
@@ -20,6 +21,7 @@ namespace CoursesDekstopApp.viewModels.Queries
         
         protected void UpdateObservableCollection<T>(ObservableCollection<T> collection, List<T> data)
         {
+            if (collection == null) return;
             collection.Clear();
             if (data != null)
             {

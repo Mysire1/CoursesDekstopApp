@@ -1,15 +1,14 @@
-﻿using System.Collections.ObjectModel;
+﻿using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using CoursesDekstopApp.data;
 using DefaultNamespace;
 using CoursesDekstopApp.viewModels.Queries;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using CommunityToolkit.Mvvm.Input;
-
 
 namespace CoursesDekstopApp.viewModels
 {
@@ -24,6 +23,8 @@ namespace CoursesDekstopApp.viewModels
     {
         #region Залежності та Конструктор
         
+        private readonly ApplicationDbContext _context;
+        
         public MainViewModel(ApplicationDbContext context,
                              SearchGroupsViewModel searchGroups,
                              CalculateCostViewModel calculateCost,
@@ -36,6 +37,8 @@ namespace CoursesDekstopApp.viewModels
                              LargeGroupDiscountViewModel largeGroupDiscount,
                              ScheduleViewModel schedule)
         {
+            _context = context;
+            
             SearchGroups = searchGroups;
             CalculateCost = calculateCost;
             FailedExams = failedExams;
@@ -47,11 +50,12 @@ namespace CoursesDekstopApp.viewModels
             LargeGroupDiscount = largeGroupDiscount;
             Schedule = schedule;
             
-            LoadBaseDataAsync(context);
+            LoadBaseDataAsync();
         }
         #endregion
 
-        #region Базові дані (для ComboBox'ів)
+        #region Базові дані (для ComboBox'ів та вкладки Студенти)
+        
         [ObservableProperty]
         private ObservableCollection<Student> _students = new();
         [ObservableProperty]
@@ -61,14 +65,14 @@ namespace CoursesDekstopApp.viewModels
         [ObservableProperty]
         private ObservableCollection<Group> _allGroups = new();
         
-        private async Task LoadBaseDataAsync(ApplicationDbContext context)
+        private async Task LoadBaseDataAsync()
         {
              try
             {
-                UpdateObservableCollectionInternal(Students, await context.Students.ToListAsync());
-                UpdateObservableCollectionInternal(Languages, await context.Languages.ToListAsync());
-                UpdateObservableCollectionInternal(Teachers, await context.Teachers.ToListAsync());
-                UpdateObservableCollectionInternal(AllGroups, await context.Groups.Include(g => g.Teacher).ToListAsync());
+                UpdateObservableCollectionInternal(Students, await _context.Students.ToListAsync());
+                UpdateObservableCollectionInternal(Languages, await _context.Languages.ToListAsync());
+                UpdateObservableCollectionInternal(Teachers, await _context.Teachers.ToListAsync());
+                UpdateObservableCollectionInternal(AllGroups, await _context.Groups.Include(g => g.Teacher).ToListAsync());
             }
             catch (Exception ex)
             {
@@ -82,9 +86,9 @@ namespace CoursesDekstopApp.viewModels
             collection.Clear();
             if (data != null) foreach (var item in data) collection.Add(item);
         }
-        private void ShowErrorInternal(string message)
+        private void ShowErrorInternal(string message, string? title = "Помилка")
         {
-            MessageBox.Show(message, "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
         }
          private void ShowInfoInternal(string message, string title = "Інформація")
         {
@@ -121,22 +125,23 @@ namespace CoursesDekstopApp.viewModels
         private string? _newStudentPhone;
         [ObservableProperty]
         private string? _newStudentEmail;
-
+        
         public bool CanAddStudent =>
             !string.IsNullOrWhiteSpace(NewStudentFirstName) &&
             !string.IsNullOrWhiteSpace(NewStudentLastName) &&
             NewStudentDateOfBirth.HasValue;
 
         [RelayCommand(CanExecute = nameof(CanAddStudent))]
-        private async Task AddStudentAsync(ApplicationDbContext context)
+        private async Task AddStudentAsync()
         {
             if (NewStudentDateOfBirth.HasValue && DateTime.Today.Year - NewStudentDateOfBirth.Value.Year < 11)
             {
                  ShowInfoInternal("Студент має бути старшим за 10 років.");
                 return;
             }
-
-            var newStudent = new Student {
+            
+            var newStudent = new Student
+            {
                 FirstName = NewStudentFirstName,
                 LastName = NewStudentLastName,
                 DateOfBirth = NewStudentDateOfBirth!.Value,
@@ -144,12 +149,12 @@ namespace CoursesDekstopApp.viewModels
                 Email = NewStudentEmail,
                 RegistrationDate = DateTime.Now,
                 CreatedAt = DateTime.Now
-             };
+            };
 
             try
             {
-                context.Students.Add(newStudent);
-                await context.SaveChangesAsync();
+                _context.Students.Add(newStudent);
+                await _context.SaveChangesAsync();
                 ShowInfoInternal($"Студента {newStudent.FullName} успішно додано!", "Успіх");
                 
                 NewStudentFirstName = string.Empty;
@@ -157,8 +162,8 @@ namespace CoursesDekstopApp.viewModels
                 NewStudentDateOfBirth = null;
                 NewStudentPhone = null;
                 NewStudentEmail = null;
-
-                await LoadBaseDataAsync(context);
+                
+                await LoadBaseDataAsync();
             }
             catch (Exception ex)
             {

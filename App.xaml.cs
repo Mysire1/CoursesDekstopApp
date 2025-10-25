@@ -1,4 +1,5 @@
-﻿using System.Windows;
+﻿using System.IO; // <--- ДОДАЙТЕ ЦЕЙ USING
+using System.Windows;
 using CoursesDekstopApp.data;
 using CoursesDekstopApp.viewModels;
 using Microsoft.EntityFrameworkCore;
@@ -18,6 +19,12 @@ namespace CoursesDekstopApp
         public App()
         {
             AppHost = Host.CreateDefaultBuilder()
+                .ConfigureAppConfiguration((context, config) =>
+                {
+                    config.SetBasePath(Directory.GetCurrentDirectory());
+                    config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true);
+                })
+                
                 .ConfigureServices((context, services) =>
                 {
                     services.AddDbContext<ApplicationDbContext>(options =>
@@ -38,27 +45,18 @@ namespace CoursesDekstopApp
                             provider.GetRequiredService<MainViewModel>().Languages,
                             provider.GetRequiredService<MainViewModel>().Teachers
                         ));
-                    
                     services.AddTransient<CalculateCostViewModel>(provider =>
                         new CalculateCostViewModel(
                             provider.GetRequiredService<ApplicationDbContext>(),
                             provider.GetRequiredService<MainViewModel>().Languages
                         ));
-                    
                     services.AddTransient<FailedExamsViewModel>();
-                    
                     services.AddTransient<TeachersByLanguageCountViewModel>();
-                    
                     services.AddTransient<StudentPaymentStatusViewModel>();
-                    
                     services.AddTransient<LoyaltyDiscountViewModel>();
-                    
                     services.AddTransient<StudentsByLanguageViewModel>();
-                    
                     services.AddTransient<SmallGroupSurchargeViewModel>();
-                    
                     services.AddTransient<LargeGroupDiscountViewModel>();
-                    
                     services.AddTransient<ScheduleViewModel>(provider =>
                         new ScheduleViewModel(
                             provider.GetRequiredService<ApplicationDbContext>(),
@@ -66,19 +64,20 @@ namespace CoursesDekstopApp
                             provider.GetRequiredService<MainViewModel>().Teachers
                         ));
                 })
-                .Build(); }
-        
+                .Build();
+         }
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             await AppHost!.StartAsync();
-            
+
             var startupForm = AppHost.Services.GetRequiredService<MainWindow>();
             
-            startupForm.Show(); 
+            startupForm.Show();
 
             base.OnStartup(e);
         }
-        
+
         protected override async void OnExit(ExitEventArgs e)
         {
             await AppHost!.StopAsync();
