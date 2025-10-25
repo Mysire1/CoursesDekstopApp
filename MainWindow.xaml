@@ -223,7 +223,7 @@
                     
                     <Border BorderBrush="DarkRed" BorderThickness="2" Background="#FFF0F0" Padding="10" CornerRadius="5" Margin="0,15,0,0">
                         <StackPanel Orientation="Vertical">
-                            <TextBlock Text="Запит 8: Надбавка для малих груп (більше 5)" FontSize="20" FontWeight="Bold"/>
+                            <TextBlock Text="Запит 8: Надбавка для малих груп (менше 5)" FontSize="20" FontWeight="Bold"/>
                             <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
                                 Натисніть кнопку, щоб знайти групи, де менше 5 студентів, 
                                 та збільшити вартість навчання для всіх слухачів цих груп на 20% (якщо це не було зроблено раніше).
@@ -249,12 +249,10 @@
                     <Border BorderBrush="DarkGreen" BorderThickness="2" Background="#F0FFF0" Padding="10" CornerRadius="5" Margin="0,15,0,0">
                         <StackPanel Orientation="Vertical">
                             <TextBlock Text="Запит 9: Знижка для великих груп (= 20)" FontSize="20" FontWeight="Bold"/>
-                            
                             <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
                                 Натисніть кнопку, щоб знайти групи, де рівно 20 студентів, 
                                 та зменшити вартість навчання для всіх слухачів цих груп на 5% (якщо це не було зроблено раніше).
                             </TextBlock>
-                            
                             <Button Content="Застосувати знижку 5%" 
                                     Command="{Binding ApplyLargeGroupDiscountAsyncCommand}" 
                                     Margin="5,10,0,0" 
@@ -262,25 +260,70 @@
                                     Padding="20, 5"
                                     Background="DarkGreen"
                                     Foreground="White"/>
-
                             <TextBlock Text="Великі групи, які було знайдено:" FontWeight="Bold" Margin="0,10,0,5"/>
-                            <DataGrid ItemsSource="{Binding LargeGroups}" 
-                                      AutoGenerateColumns="False" 
-                                      IsReadOnly="True" 
-                                      FontSize="14" 
-                                      MaxHeight="200"
-                                      CanUserAddRows="False"
-                                      Margin="0,5,0,0">
+                            <DataGrid ItemsSource="{Binding LargeGroups}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="200" CanUserAddRows="False" Margin="0,5,0,0">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Група" Binding="{Binding GroupName}" Width="*"/>
                                     <DataGridTextColumn Header="Рівень" Binding="{Binding Level.Name}" Width="*"/>
                                     <DataGridTextColumn Header="К-сть студентів" Binding="{Binding Enrollments.Count}" Width="Auto"/>
                                 </DataGrid.Columns>
                             </DataGrid>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border BorderBrush="Gray" BorderThickness="1" Padding="10" CornerRadius="5" Margin="0,15,0,15">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Запит 10: Отримати розклад" FontSize="20" FontWeight="Bold"/>
+                            
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <TextBlock Grid.Column="0" Text="Група:" VerticalAlignment="Center" Margin="5"/>
+                                <ComboBox Grid.Column="1" 
+                                          ItemsSource="{Binding AllGroups}"
+                                          DisplayMemberPath="GroupName"
+                                          SelectedItem="{Binding SelectedGroupForSchedule}"
+                                          Margin="5"/>
+
+                                <TextBlock Grid.Column="2" Text="АБО Викладач:" VerticalAlignment="Center" Margin="5"/>
+                                <ComboBox Grid.Column="3"
+                                          ItemsSource="{Binding Teachers}"
+                                          DisplayMemberPath="FullName"
+                                          SelectedItem="{Binding SelectedTeacherForSchedule}"
+                                          Margin="5"/>
+
+                                <Button Grid.Column="4" 
+                                        Content="Показати розклад" 
+                                        Command="{Binding GetScheduleAsyncCommand}"
+                                        Padding="20,5" 
+                                        Margin="10,5"/>
+                            </Grid>
+
+                            <DataGrid ItemsSource="{Binding ScheduleResults}" 
+                                      AutoGenerateColumns="False" 
+                                      IsReadOnly="True" 
+                                      FontSize="14" 
+                                      MaxHeight="300"
+                                      CanUserAddRows="False"
+                                      Margin="0,10,0,0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="День тижня" Binding="{Binding DayOfWeek}" Width="*"/>
+                                    <DataGridTextColumn Header="Час Початку" Binding="{Binding StartTime, StringFormat=hh\\:mm}" Width="*"/>
+                                    <DataGridTextColumn Header="Час Кінця" Binding="{Binding EndTime, StringFormat=hh\\:mm}" Width="*"/>
+                                    <DataGridTextColumn Header="Аудиторія" Binding="{Binding Classroom.RoomNumber}" Width="*"/>
+                                    <DataGridTextColumn Header="Група" Binding="{Binding Group.GroupName}" Width="2*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
                             
                         </StackPanel>
                     </Border>
-
+                    
                 </StackPanel>
             </ScrollViewer>
         </TabItem>
