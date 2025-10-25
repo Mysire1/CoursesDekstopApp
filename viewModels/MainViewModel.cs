@@ -48,11 +48,16 @@ namespace CoursesDekstopApp.viewModels
         [ObservableProperty]
         private ObservableCollection<Level> _levelsWithFailures = new();
 
+        [ObservableProperty]
+        private ObservableCollection<Teacher> _teachersWithOneLanguage = new();
+        [ObservableProperty]
+        private ObservableCollection<Teacher> _teachersWithTwoLanguages = new();
+        [ObservableProperty]
+        private ObservableCollection<Teacher> _teachersWithThreeLanguages = new();
 
         public MainViewModel(ApplicationDbContext context)
-        {
+        {   
             _context = context;
-            
             LoadDataAsync();
         }
 
@@ -256,6 +261,41 @@ namespace CoursesDekstopApp.viewModels
             catch (Exception ex)
             {
                 MessageBox.Show($"Помилка виконання запиту 3: {ex.Message}");
+            }
+        }
+        
+        [RelayCommand]
+        private async Task GetTeachersByLanguageCountAsync()
+        {
+            try
+            {
+                var allTeachers = await _context.Teachers
+                    .Include(t => t.TeacherLanguages)
+                    .ToListAsync();
+                
+                TeachersWithOneLanguage.Clear();
+                allTeachers.Where(t => t.TeacherLanguages.Count == 1)
+                    .ToList()
+                    .ForEach(t => TeachersWithOneLanguage.Add(t));
+
+                TeachersWithTwoLanguages.Clear();
+                allTeachers.Where(t => t.TeacherLanguages.Count == 2)
+                    .ToList()
+                    .ForEach(t => TeachersWithTwoLanguages.Add(t));
+                
+                TeachersWithThreeLanguages.Clear();
+                allTeachers.Where(t => t.TeacherLanguages.Count == 3)
+                    .ToList()
+                    .ForEach(t => TeachersWithThreeLanguages.Add(t));
+                
+                if (TeachersWithOneLanguage.Count == 0 && TeachersWithTwoLanguages.Count == 0 && TeachersWithThreeLanguages.Count == 0)
+                {
+                    MessageBox.Show("Викладачів, що відповідають критеріям (1, 2 або 3 мови), не знайдено.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Помилка виконання запиту 4: {ex.Message}");
             }
         }
     }
