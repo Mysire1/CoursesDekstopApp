@@ -149,7 +149,7 @@
                             <WrapPanel Orientation="Horizontal" Margin="0,10,0,0">
                                 <Button Content="Повністю сплатили" Command="{Binding GetFullyPaidStudentsAsyncCommand}" Margin="5"/>
                                 <Button Content="Є заборгованість" Command="{Binding GetNotFullyPaidStudentsAsyncCommand}" Margin="5"/>
-                                <Button Content="Борг 50%" Command="{Binding GetStudentsWithDebtLessThan50AsyncCommand}" Margin="5"/>
+                                <Button Content="Борг менше 50%" Command="{Binding GetStudentsWithDebtLessThan50AsyncCommand}" Margin="5"/>
                                 <Button Content="Мають відтермінування" Command="{Binding GetStudentsWithDeferralsAsyncCommand}" Margin="5"/>
                                 <Button Content="Мають пільги" Command="{Binding GetStudentsWithDiscountsAsyncCommand}" Margin="5"/>
                             </WrapPanel>
@@ -220,16 +220,14 @@
                             </Grid>
                         </StackPanel>
                     </Border>
-
+                    
                     <Border BorderBrush="DarkRed" BorderThickness="2" Background="#FFF0F0" Padding="10" CornerRadius="5" Margin="0,15,0,0">
                         <StackPanel Orientation="Vertical">
-                            <TextBlock Text="Запит 8: Надбавка для малих груп (5)" FontSize="20" FontWeight="Bold"/>
-                            
+                            <TextBlock Text="Запит 8: Надбавка для малих груп (більше 5)" FontSize="20" FontWeight="Bold"/>
                             <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
                                 Натисніть кнопку, щоб знайти групи, де менше 5 студентів, 
                                 та збільшити вартість навчання для всіх слухачів цих груп на 20% (якщо це не було зроблено раніше).
                             </TextBlock>
-                            
                             <Button Content="Застосувати надбавку 20%" 
                                     Command="{Binding ApplySmallGroupSurchargeAsyncCommand}" 
                                     Margin="5,10,0,0" 
@@ -237,9 +235,36 @@
                                     Padding="20, 5"
                                     Background="DarkRed"
                                     Foreground="White"/>
-
                             <TextBlock Text="Малі групи, які було знайдено:" FontWeight="Bold" Margin="0,10,0,5"/>
-                            <DataGrid ItemsSource="{Binding SmallGroups}" 
+                            <DataGrid ItemsSource="{Binding SmallGroups}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="200" CanUserAddRows="False" Margin="0,5,0,0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="Група" Binding="{Binding GroupName}" Width="*"/>
+                                    <DataGridTextColumn Header="Рівень" Binding="{Binding Level.Name}" Width="*"/>
+                                    <DataGridTextColumn Header="К-сть студентів" Binding="{Binding Enrollments.Count}" Width="Auto"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border BorderBrush="DarkGreen" BorderThickness="2" Background="#F0FFF0" Padding="10" CornerRadius="5" Margin="0,15,0,0">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Запит 9: Знижка для великих груп (= 20)" FontSize="20" FontWeight="Bold"/>
+                            
+                            <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
+                                Натисніть кнопку, щоб знайти групи, де рівно 20 студентів, 
+                                та зменшити вартість навчання для всіх слухачів цих груп на 5% (якщо це не було зроблено раніше).
+                            </TextBlock>
+                            
+                            <Button Content="Застосувати знижку 5%" 
+                                    Command="{Binding ApplyLargeGroupDiscountAsyncCommand}" 
+                                    Margin="5,10,0,0" 
+                                    HorizontalAlignment="Left" 
+                                    Padding="20, 5"
+                                    Background="DarkGreen"
+                                    Foreground="White"/>
+
+                            <TextBlock Text="Великі групи, які було знайдено:" FontWeight="Bold" Margin="0,10,0,5"/>
+                            <DataGrid ItemsSource="{Binding LargeGroups}" 
                                       AutoGenerateColumns="False" 
                                       IsReadOnly="True" 
                                       FontSize="14" 

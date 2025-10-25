@@ -7,5 +7,7 @@ namespace CoursesDekstopApp.services
     public interface IGroupService
     {
         Task<(List<Group> affectedGroups, int studentsAffected)> ApplySurchargeForSmallGroupsAsync(int minSize, decimal surchargePercentage);
+        
+        Task<(List<Group> affectedGroups, int studentsAffected)> ApplyDiscountForLargeGroupsAsync(int maxSize, decimal discountPercentage);
     }
 }

@@ -69,6 +69,18 @@ namespace CoursesDekstopApp.viewModels
         [ObservableProperty]
         private ObservableCollection<Group> _smallGroups = new();
         
+        [ObservableProperty]
+        private ObservableCollection<Group> _largeGroups = new();
+        
+        [ObservableProperty]
+        private ObservableCollection<Group> _allGroups = new();
+        [ObservableProperty]
+        private Group? _selectedGroupForSchedule;
+        [ObservableProperty]
+        private Teacher? _selectedTeacherForSchedule;
+        [ObservableProperty]
+        private ObservableCollection<Schedule> _scheduleResults = new();
+        
         public MainViewModel(ApplicationDbContext context, IStudentService studentService, IGroupService groupService)
         {
             _context = context;
@@ -89,6 +101,9 @@ namespace CoursesDekstopApp.viewModels
                 var teachersFromDb = await _context.Teachers.ToListAsync();
                 Teachers.Clear();
                 foreach (var teacher in teachersFromDb) Teachers.Add(teacher);
+                var allGroupsFromDb = await _context.Groups.Include(g => g.Teacher).ToListAsync();
+                AllGroups.Clear();
+                foreach (var group in allGroupsFromDb) AllGroups.Add(group);
             }
             catch (Exception ex)
             {
@@ -431,6 +446,90 @@ namespace CoursesDekstopApp.viewModels
             catch (Exception ex)
             {
                 MessageBox.Show($"Помилка застосування надбавки: {ex.Message}");
+            }
+        }
+        
+        [RelayCommand]
+        private async Task ApplyLargeGroupDiscountAsync()
+        {
+            try
+            {
+                var (affectedGroups, studentsCount) = await _groupService.ApplyDiscountForLargeGroupsAsync(20, 5);
+                
+                LargeGroups.Clear();
+                foreach (var g in affectedGroups)
+                {
+                    LargeGroups.Add(g);
+                }
+
+                if (studentsCount > 0)
+                {
+                    MessageBox.Show($"Успішно надано знижку 5% для {studentsCount} студентів у {affectedGroups.Count} великих групах.");
+                }
+                else if (affectedGroups.Count > 0)
+                {
+                    MessageBox.Show($"Знайдено {affectedGroups.Count} великих груп, але знижка для студентів вже була застосована раніше.");
+                }
+                else
+                {
+                    MessageBox.Show("Великих груп (рівно 20 студентів) не знайдено.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Помилка застосування знижки: {ex.Message}");
+            }
+        }
+        [RelayCommand]
+        private async Task GetScheduleAsync()
+        {
+            try
+            {
+                ScheduleResults.Clear();
+                List<Schedule> results = new List<Schedule>();
+
+                if (SelectedGroupForSchedule != null)
+                {
+                    results = await _context.Schedules
+                        .Include(s => s.Group)
+                        .Include(s => s.Classroom)
+                        .Where(s => s.GroupId == SelectedGroupForSchedule.GroupId)
+                        .OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
+                        .ToListAsync();
+                }
+                else if (SelectedTeacherForSchedule != null)
+                {
+                    results = await _context.Schedules
+                        .Include(s => s.Group)
+                        .Include(s => s.Classroom)
+                        .Where(s => s.Group.TeacherId == SelectedTeacherForSchedule.TeacherId)
+                        .OrderBy(s => s.DayOfWeek).ThenBy(s => s.StartTime)
+                        .ToListAsync();
+                }
+                else
+                {
+                    MessageBox.Show("Будь ласка, оберіть групу АБО викладача.");
+                    return;
+                }
+                
+                foreach (var s in results)
+                {
+                    ScheduleResults.Add(s);
+                }
+
+                if (ScheduleResults.Count == 0)
+                {
+                    MessageBox.Show("Розклад не знайдено.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Помилка отримання розкладу: {ex.Message}");
+            }
+            finally
+            {
+                SelectedGroupForSchedule = null;
+                SelectedTeacherForSchedule = null;
             }
         }
     }
