@@ -40,6 +40,13 @@ namespace CoursesDekstopApp.viewModels
         private string _costCalculationResult = string.Empty;
         [ObservableProperty]
         private ObservableCollection<CostResult> _costBreakdown = new();
+        
+        [ObservableProperty]
+        private int _failedExamsCount = 0;
+        [ObservableProperty]
+        private ObservableCollection<ExamResult> _failedExamResults = new();
+        [ObservableProperty]
+        private ObservableCollection<Level> _levelsWithFailures = new();
 
 
         public MainViewModel(ApplicationDbContext context)
@@ -207,6 +214,49 @@ namespace CoursesDekstopApp.viewModels
 
             CostBreakdown.Clear();
             foreach (var res in costResults) CostBreakdown.Add(res);
+        }
+        
+        [RelayCommand]
+        private async Task GetFailedExamsAsync()
+        {
+            try
+            {
+                var failedResults = await _context.ExamResults
+                    .Include(er => er.Student)
+                    .Include(er => er.Exam)
+                    .ThenInclude(e => e.Level)
+                    .ThenInclude(l => l.Language)
+                    .Where(er => er.Grade < 50)
+                    .ToListAsync();
+                
+                FailedExamsCount = failedResults.Count;
+                
+                FailedExamResults.Clear();
+                foreach (var res in failedResults)
+                {
+                    FailedExamResults.Add(res);
+                }
+                
+                var levels = failedResults
+                    .Select(er => er.Exam.Level)
+                    .Distinct()
+                    .ToList();
+                
+                LevelsWithFailures.Clear();
+                foreach (var level in levels)
+                {
+                    LevelsWithFailures.Add(level);
+                }
+
+                if (FailedExamsCount == 0)
+                {
+                    MessageBox.Show("Слухачів, які не склали іспит, не знайдено.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Помилка виконання запиту 3: {ex.Message}");
+            }
         }
     }
 }
