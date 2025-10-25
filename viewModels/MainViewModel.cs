@@ -6,6 +6,7 @@ using CoursesDekstopApp.data;
 using DefaultNamespace;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using CoursesDekstopApp.services;
 
 namespace CoursesDekstopApp.viewModels
 {
@@ -18,6 +19,8 @@ namespace CoursesDekstopApp.viewModels
     
     public partial class MainViewModel : ObservableObject
     {
+        private readonly IStudentService _studentService;
+        private readonly IGroupService _groupService;
         private readonly ApplicationDbContext _context;
         
         [ObservableProperty]
@@ -63,36 +66,29 @@ namespace CoursesDekstopApp.viewModels
         [ObservableProperty]
         private ObservableCollection<Student> _studentsLearningMultipleLanguages = new();
         
-        public MainViewModel(ApplicationDbContext context)
-        {   
+        [ObservableProperty]
+        private ObservableCollection<Group> _smallGroups = new();
+        
+        public MainViewModel(ApplicationDbContext context, IStudentService studentService, IGroupService groupService)
+        {
             _context = context;
+            _studentService = studentService;
+            _groupService = groupService; 
             LoadDataAsync();
         }
-
         private async Task LoadDataAsync()
         {
             try
             {
                 var studentsFromDb = await _context.Students.ToListAsync();
                 Students.Clear();
-                foreach (var student in studentsFromDb)
-                {
-                    Students.Add(student);
-                }
-                
+                foreach (var student in studentsFromDb) Students.Add(student);
                 var languagesFromDb = await _context.Languages.ToListAsync();
                 Languages.Clear();
-                foreach (var lang in languagesFromDb)
-                {
-                    Languages.Add(lang);
-                }
-
+                foreach (var lang in languagesFromDb) Languages.Add(lang);
                 var teachersFromDb = await _context.Teachers.ToListAsync();
                 Teachers.Clear();
-                foreach (var teacher in teachersFromDb)
-                {
-                    Teachers.Add(teacher);
-                }
+                foreach (var teacher in teachersFromDb) Teachers.Add(teacher);
             }
             catch (Exception ex)
             {
@@ -403,6 +399,38 @@ namespace CoursesDekstopApp.viewModels
             catch (Exception ex)
             {
                 MessageBox.Show($"Помилка виконання запиту 7: {ex.Message}");
+            }
+        }
+        
+        [RelayCommand]
+        private async Task ApplySmallGroupSurchargeAsync()
+        {
+            try
+            {
+                var (affectedGroups, studentsCount) = await _groupService.ApplySurchargeForSmallGroupsAsync(5, 20); 
+
+                SmallGroups.Clear();
+                foreach (var g in affectedGroups)
+                {
+                    SmallGroups.Add(g);
+                }
+
+                if (studentsCount > 0)
+                {
+                    MessageBox.Show($"Успішно збільшено вартість для {studentsCount} студентів у {affectedGroups.Count} малих групах.");
+                }
+                else if (affectedGroups.Count > 0)
+                {
+                    MessageBox.Show($"Знайдено {affectedGroups.Count} малих груп, але вартість для студентів вже була змінена раніше.");
+                }
+                else
+                {
+                    MessageBox.Show("Малих груп (менше 5 студентів) не знайдено.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Помилка застосування надбавки: {ex.Message}");
             }
         }
     }
