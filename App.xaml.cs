@@ -7,6 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using CoursesDekstopApp.services;
 using CoursesDekstopApp.services.impl;
+using CoursesDekstopApp.viewModels.Queries;
 
 namespace CoursesDekstopApp
 {
@@ -25,15 +26,47 @@ namespace CoursesDekstopApp
                         options.UseNpgsql(connectionString);
                     });
                     
+                    services.AddTransient<IStudentService, StudentServiceImpl>();
+                    services.AddTransient<IGroupService, GroupServiceImpl>();
+                    
                     services.AddSingleton<MainWindow>();
                     services.AddSingleton<MainViewModel>();
                     
-                    services.AddTransient<IStudentService, StudentServiceImpl>();
+                    services.AddTransient<SearchGroupsViewModel>(provider =>
+                        new SearchGroupsViewModel(
+                            provider.GetRequiredService<ApplicationDbContext>(),
+                            provider.GetRequiredService<MainViewModel>().Languages,
+                            provider.GetRequiredService<MainViewModel>().Teachers
+                        ));
                     
-                    services.AddTransient<IGroupService, GroupServiceImpl>();
+                    services.AddTransient<CalculateCostViewModel>(provider =>
+                        new CalculateCostViewModel(
+                            provider.GetRequiredService<ApplicationDbContext>(),
+                            provider.GetRequiredService<MainViewModel>().Languages
+                        ));
+                    
+                    services.AddTransient<FailedExamsViewModel>();
+                    
+                    services.AddTransient<TeachersByLanguageCountViewModel>();
+                    
+                    services.AddTransient<StudentPaymentStatusViewModel>();
+                    
+                    services.AddTransient<LoyaltyDiscountViewModel>();
+                    
+                    services.AddTransient<StudentsByLanguageViewModel>();
+                    
+                    services.AddTransient<SmallGroupSurchargeViewModel>();
+                    
+                    services.AddTransient<LargeGroupDiscountViewModel>();
+                    
+                    services.AddTransient<ScheduleViewModel>(provider =>
+                        new ScheduleViewModel(
+                            provider.GetRequiredService<ApplicationDbContext>(),
+                            provider.GetRequiredService<MainViewModel>().AllGroups,
+                            provider.GetRequiredService<MainViewModel>().Teachers
+                        ));
                 })
-                .Build();
-        }
+                .Build(); }
         
         protected override async void OnStartup(StartupEventArgs e)
         {
