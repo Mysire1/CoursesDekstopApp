@@ -10,7 +10,6 @@
 
     <ItemGroup>
       <Folder Include="services\" />
-      <Folder Include="viewModels\" />
       <Folder Include="views\" />
     </ItemGroup>
 
@@ -22,6 +21,12 @@
       </PackageReference>
       <PackageReference Include="Microsoft.Extensions.Hosting" Version="10.0.0-rc.2.25502.107" />
       <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Update="appsettings.json">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
     </ItemGroup>
 
 </Project>

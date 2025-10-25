@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace DefaultNamespace;
 
+[Table("students")]
 public class Student
 {
     [Key]
