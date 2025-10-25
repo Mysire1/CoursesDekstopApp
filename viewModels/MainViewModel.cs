@@ -69,10 +69,14 @@ namespace CoursesDekstopApp.viewModels
         {
             try
             {
+                MessageBox.Show("Початок завантаження даних...", "Інформація");
+        
                 var students = await _context.Students.ToListAsync();
                 var languages = await _context.Languages.ToListAsync();
                 var teachers = await _context.Teachers.ToListAsync();
                 var groups = await _context.Groups.Include(g => g.Teacher).ToListAsync();
+        
+                MessageBox.Show($"Завантажено: {students.Count} студентів, {languages.Count} мов, {teachers.Count} викладачів", "Результат");
                 
                 UpdateObservableCollectionInternal(Students, students);
                 UpdateObservableCollectionInternal(Languages, languages);
