@@ -50,7 +50,7 @@ namespace CoursesDekstopApp.viewModels
             LargeGroupDiscount = largeGroupDiscount;
             Schedule = schedule;
             
-            LoadBaseDataAsync();
+            _ = LoadBaseDataAsync();
         }
         #endregion
 
