@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using CoursesDekstopApp.services;
+using CoursesDekstopApp.services.impl;
 
 namespace CoursesDekstopApp
 {
@@ -24,8 +26,9 @@ namespace CoursesDekstopApp
                     });
                     
                     services.AddSingleton<MainWindow>();
-                    
                     services.AddSingleton<MainViewModel>();
+                    
+                    services.AddTransient<IStudentService, StudentServiceImpl>();
     
                 })
                 .Build();

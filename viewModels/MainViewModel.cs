@@ -54,7 +54,10 @@ namespace CoursesDekstopApp.viewModels
         private ObservableCollection<Teacher> _teachersWithTwoLanguages = new();
         [ObservableProperty]
         private ObservableCollection<Teacher> _teachersWithThreeLanguages = new();
-
+        
+        [ObservableProperty]
+        private ObservableCollection<Student> _paymentStatusStudents = new();
+        
         public MainViewModel(ApplicationDbContext context)
         {   
             _context = context;
@@ -297,6 +300,71 @@ namespace CoursesDekstopApp.viewModels
             {
                 MessageBox.Show($"Помилка виконання запиту 4: {ex.Message}");
             }
+        }
+        
+        private void UpdatePaymentStatusList(List<Student> students)
+        {
+            PaymentStatusStudents.Clear();
+            foreach (var s in students)
+            {
+                PaymentStatusStudents.Add(s);
+            }
+            if (PaymentStatusStudents.Count == 0)
+            {
+                MessageBox.Show("Слухачів за цим критерієм не знайдено.");
+            }
+        }
+        
+        [RelayCommand]
+        private async Task GetFullyPaidStudentsAsync()
+        {
+            var students = await _context.Students
+                .Where(s => s.Enrollments.Any(e => e.Payments.Sum(p => p.Amount) >= e.FinalCost))
+                .Distinct()
+                .ToListAsync();
+            UpdatePaymentStatusList(students);
+        }
+        
+        [RelayCommand]
+        private async Task GetNotFullyPaidStudentsAsync()
+        {
+            var students = await _context.Students
+                .Where(s => s.Enrollments.Any(e => e.FinalCost > e.Payments.Sum(p => p.Amount)))
+                .Distinct()
+                .ToListAsync();
+            UpdatePaymentStatusList(students);
+        }
+        
+        [RelayCommand]
+        private async Task GetStudentsWithDebtLessThan50Async()
+        {
+            var students = await _context.Students
+                .Where(s => s.Enrollments.Any(e =>
+                    e.FinalCost > e.Payments.Sum(p => p.Amount) &&
+                    e.Payments.Sum(p => p.Amount) > (e.FinalCost * 0.5m)
+                ))
+                .Distinct()
+                .ToListAsync();
+            UpdatePaymentStatusList(students);
+        }
+        
+        [RelayCommand]
+        private async Task GetStudentsWithDeferralsAsync()
+        {
+            var students = await _context.Students
+                .Where(s => s.Enrollments.Any(e => e.PaymentDeferrals.Any()))
+                .Distinct()
+                .ToListAsync();
+            UpdatePaymentStatusList(students);
+        }
+        
+        [RelayCommand]
+        private async Task GetStudentsWithDiscountsAsync()
+        {
+            var students = await _context.Students
+                .Where(s => s.HasDiscount == true || s.DiscountPercentage > 0)
+                .ToListAsync();
+            UpdatePaymentStatusList(students);
         }
     }
 }
