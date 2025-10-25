@@ -50,7 +50,21 @@ namespace CoursesDekstopApp.viewModels
             LargeGroupDiscount = largeGroupDiscount;
             Schedule = schedule;
             
-            _ = LoadBaseDataAsync();
+            Task.Run(async () =>
+            {
+                try
+                {
+                    await LoadBaseDataAsync();
+                }
+                catch (Exception ex)
+                {
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show($"Помилка завантаження даних: {ex.Message}", 
+                            "Помилка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    });
+                }
+            });
         }
         #endregion
 
@@ -75,21 +89,23 @@ namespace CoursesDekstopApp.viewModels
                 var languages = await _context.Languages.ToListAsync();
                 var teachers = await _context.Teachers.ToListAsync();
                 var groups = await _context.Groups.Include(g => g.Teacher).ToListAsync();
-        
+                
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    UpdateObservableCollectionInternal(Students, students);
+                    UpdateObservableCollectionInternal(Languages, languages);
+                    UpdateObservableCollectionInternal(Teachers, teachers);
+                    UpdateObservableCollectionInternal(AllGroups, groups);
+            
+                    // Оновлюємо дані для інших ViewModels
+                    UpdateObservableCollectionInternal(SearchGroups.AvailableLanguages, languages);
+                    UpdateObservableCollectionInternal(SearchGroups.AvailableTeachers, teachers);
+                    UpdateObservableCollectionInternal(CalculateCost.AvailableLanguages, languages);
+                    UpdateObservableCollectionInternal(Schedule.AvailableGroups, groups);
+                    UpdateObservableCollectionInternal(Schedule.AvailableTeachers, teachers);
+                });
+                
                 MessageBox.Show($"Завантажено: {students.Count} студентів, {languages.Count} мов, {teachers.Count} викладачів", "Результат");
-                
-                UpdateObservableCollectionInternal(Students, students);
-                UpdateObservableCollectionInternal(Languages, languages);
-                UpdateObservableCollectionInternal(Teachers, teachers);
-                UpdateObservableCollectionInternal(AllGroups, groups);
-                
-                UpdateObservableCollectionInternal(SearchGroups.AvailableLanguages, languages);
-                UpdateObservableCollectionInternal(SearchGroups.AvailableTeachers, teachers);
-
-                UpdateObservableCollectionInternal(CalculateCost.AvailableLanguages, languages);
-
-                UpdateObservableCollectionInternal(Schedule.AvailableGroups, groups);
-                UpdateObservableCollectionInternal(Schedule.AvailableTeachers, teachers);
             }
             catch (Exception ex)
             {
@@ -99,10 +115,26 @@ namespace CoursesDekstopApp.viewModels
         
         private void UpdateObservableCollectionInternal<T>(ObservableCollection<T> collection, List<T> data)
         {
-            if (collection == null) return;
+            if (collection == null) 
+            {
+                MessageBox.Show($"Collection is null for type {typeof(T).Name}");
+                return;
+            }
+    
             collection.Clear();
-            if (data != null) foreach (var item in data) collection.Add(item);
+    
+            if (data != null) 
+            {
+                foreach (var item in data) 
+                {
+                    collection.Add(item);
+                }
+        
+                // Для діагностики
+                MessageBox.Show($"Додано {data.Count} елементів до {typeof(T).Name} колекції");
+            }
         }
+
         private void ShowErrorInternal(string message, string? title = "Помилка")
         {
             MessageBox.Show(message, title, MessageBoxButton.OK, MessageBoxImage.Error);
