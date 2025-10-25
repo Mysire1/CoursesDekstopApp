@@ -21,13 +21,15 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
                 <TextBlock Text="Список Студентів" Grid.Row="0" FontSize="24" FontWeight="Bold" Margin="0,0,0,10"/>
-                <DataGrid Grid.Row="1" ItemsSource="{Binding Students}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14">
+                <DataGrid Grid.Row="1" ItemsSource="{Binding Students}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" CanUserAddRows="False">
                     <DataGrid.Columns>
                         <DataGridTextColumn Header="ID" Binding="{Binding StudentId}" Width="Auto"/>
                         <DataGridTextColumn Header="Ім'я" Binding="{Binding FirstName}" Width="*"/>
                         <DataGridTextColumn Header="Прізвище" Binding="{Binding LastName}" Width="*"/>
                         <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="2*"/>
                         <DataGridTextColumn Header="Телефон" Binding="{Binding Phone}" Width="*"/>
+                        <DataGridCheckBoxColumn Header="Знижка" Binding="{Binding HasDiscount}" Width="Auto"/>
+                        <DataGridTextColumn Header="% Знижки" Binding="{Binding DiscountPercentage}" Width="Auto"/>
                     </DataGrid.Columns>
                 </DataGrid>
             </Grid>
@@ -52,7 +54,7 @@
                                 <ComboBox Grid.Column="3" ItemsSource="{Binding Teachers}" DisplayMemberPath="FullName" SelectedItem="{Binding SelectedTeacher}" Margin="5"/>
                                 <Button Grid.Column="4" Content="Пошук" Command="{Binding SearchGroupsAsyncCommand}" Padding="20,5" Margin="10,5"/>
                             </Grid>
-                            <DataGrid ItemsSource="{Binding FilteredGroups}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="200">
+                            <DataGrid ItemsSource="{Binding FilteredGroups}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="200" CanUserAddRows="False">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Назва Групи" Binding="{Binding GroupName}" Width="2*"/>
                                     <DataGridTextColumn Header="Мова" Binding="{Binding Level.Language.Name}" Width="*"/>
@@ -75,7 +77,7 @@
                             </WrapPanel>
                             <TextBlock Text="{Binding CostCalculationResult}" FontSize="16" FontWeight="Bold" Foreground="DarkGreen" Margin="5,10,5,5"
                                        Visibility="{Binding CostCalculationResult, Converter={StaticResource StringNullOrEmptyToVisibilityConverter}}"/>
-                            <DataGrid ItemsSource="{Binding CostBreakdown}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="200" Margin="0,5,0,0">
+                            <DataGrid ItemsSource="{Binding CostBreakdown}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="200" CanUserAddRows="False" Margin="0,5,0,0">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="Назва" Binding="{Binding Name}" Width="2*"/>
                                     <DataGridTextColumn Header="Вартість" Binding="{Binding Cost, StringFormat=C}" Width="*"/>
@@ -100,7 +102,7 @@
                                 </Grid.ColumnDefinitions>
                                 <StackPanel Grid.Column="0" Margin="5">
                                     <TextBlock Text="Список слухачів:" FontWeight="Bold" Margin="0,0,0,5"/>
-                                    <DataGrid ItemsSource="{Binding FailedExamResults}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="200">
+                                    <DataGrid ItemsSource="{Binding FailedExamResults}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="200" CanUserAddRows="False">
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Слухач" Binding="{Binding Student.FullName}" Width="*"/>
                                             <DataGridTextColumn Header="Рівень" Binding="{Binding Exam.Level.Name}" Width="*"/>
@@ -144,29 +146,97 @@
                     <Border BorderBrush="Gray" BorderThickness="1" Padding="10" CornerRadius="5" Margin="0,15,0,0">
                         <StackPanel Orientation="Vertical">
                             <TextBlock Text="Запит 5: Статус оплати слухачів" FontSize="20" FontWeight="Bold"/>
-                            
                             <WrapPanel Orientation="Horizontal" Margin="0,10,0,0">
                                 <Button Content="Повністю сплатили" Command="{Binding GetFullyPaidStudentsAsyncCommand}" Margin="5"/>
                                 <Button Content="Є заборгованість" Command="{Binding GetNotFullyPaidStudentsAsyncCommand}" Margin="5"/>
+                                <Button Content="Борг 50%" Command="{Binding GetStudentsWithDebtLessThan50AsyncCommand}" Margin="5"/>
                                 <Button Content="Мають відтермінування" Command="{Binding GetStudentsWithDeferralsAsyncCommand}" Margin="5"/>
                                 <Button Content="Мають пільги" Command="{Binding GetStudentsWithDiscountsAsyncCommand}" Margin="5"/>
                             </WrapPanel>
-
-                            <DataGrid ItemsSource="{Binding PaymentStatusStudents}" 
-                                      AutoGenerateColumns="False" 
-                                      IsReadOnly="True" 
-                                      FontSize="14" 
-                                      MaxHeight="250"
-                                      Margin="0,10,0,0">
+                            <DataGrid ItemsSource="{Binding PaymentStatusStudents}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="250" CanUserAddRows="False" Margin="0,10,0,0">
                                 <DataGrid.Columns>
                                     <DataGridTextColumn Header="ID" Binding="{Binding StudentId}" Width="Auto"/>
                                     <DataGridTextColumn Header="Ім'я" Binding="{Binding FullName}" Width="*"/>
                                     <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
                                     <DataGridTextColumn Header="Телефон" Binding="{Binding Phone}" Width="*"/>
-                                    <DataGridTextColumn Header="Має пільги" Binding="{Binding HasDiscount}" Width="Auto"/>
+                                    <DataGridCheckBoxColumn Header="Має пільги" Binding="{Binding HasDiscount}" Width="Auto"/>
                                 </DataGrid.Columns>
                             </DataGrid>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border BorderBrush="DarkRed" BorderThickness="2" Background="#FFF0F0" Padding="10" CornerRadius="5" Margin="0,15,0,0">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Запит 6: Знижка за лояльність ( > 3 рівнів)" FontSize="20" FontWeight="Bold"/>
+                            <TextBlock TextWrapping="Wrap" Margin="0,5,0,0">
+                                Натисніть кнопку, щоб знайти всіх студентів, які успішно завершили більше 3-х рівнів, 
+                                та надати їм постійну знижку 10% (якщо у них її ще немає).
+                            </TextBlock>
+                            <Button Content="Застосувати знижку 10%" 
+                                    Command="{Binding ApplyStudentDiscountAsyncCommand}" 
+                                    Margin="5,10,0,0" 
+                                    HorizontalAlignment="Left" 
+                                    Padding="20, 5"
+                                    Background="DarkRed"
+                                    Foreground="White"/>
+                            <TextBlock Text="Студенти, яким щойно надали знижку:" FontWeight="Bold" Margin="0,10,0,5"/>
+                            <DataGrid ItemsSource="{Binding DiscountedStudents}" AutoGenerateColumns="False" IsReadOnly="True" FontSize="14" MaxHeight="200" CanUserAddRows="False" Margin="0,5,0,0">
+                                <DataGrid.Columns>
+                                    <DataGridTextColumn Header="ID" Binding="{Binding StudentId}" Width="Auto"/>
+                                    <DataGridTextColumn Header="Ім'я" Binding="{Binding FullName}" Width="*"/>
+                                    <DataGridTextColumn Header="Нова знижка" Binding="{Binding DiscountPercentage, StringFormat={}{0}%}" Width="*"/>
+                                </DataGrid.Columns>
+                            </DataGrid>
+                        </StackPanel>
+                    </Border>
+                    
+                    <Border BorderBrush="Gray" BorderThickness="1" Padding="10" CornerRadius="5" Margin="0,15,0,0">
+                        <StackPanel Orientation="Vertical">
+                            <TextBlock Text="Запит 7: Слухачі за мовами" FontSize="20" FontWeight="Bold"/>
                             
+                            <Button Content="Знайти" 
+                                    Command="{Binding GetStudentsByLanguageStatsAsyncCommand}" 
+                                    Margin="5,10,0,0" 
+                                    HorizontalAlignment="Left" 
+                                    Padding="20, 5"/>
+
+                            <Grid Margin="0,10,0,0">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                
+                                <StackPanel Grid.Column="0" Margin="5">
+                                    <TextBlock Text="Вивчають Німецьку:" FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <DataGrid ItemsSource="{Binding StudentsLearningGerman}" 
+                                              AutoGenerateColumns="False" 
+                                              IsReadOnly="True" 
+                                              FontSize="14" 
+                                              MaxHeight="200"
+                                              CanUserAddRows="False">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Ім'я" Binding="{Binding FullName}" Width="*"/>
+                                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                                
+                                <StackPanel Grid.Column="1" Margin="5">
+                                    <TextBlock Text="Вивчають > 1 мови:" FontWeight="Bold" Margin="0,0,0,5"/>
+                                    <DataGrid ItemsSource="{Binding StudentsLearningMultipleLanguages}" 
+                                              AutoGenerateColumns="False" 
+                                              IsReadOnly="True" 
+                                              FontSize="14" 
+                                              MaxHeight="200"
+                                              CanUserAddRows="False">
+                                        <DataGrid.Columns>
+                                            <DataGridTextColumn Header="Ім'я" Binding="{Binding FullName}" Width="*"/>
+                                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
+                                        </DataGrid.Columns>
+                                    </DataGrid>
+                                </StackPanel>
+                                
+                            </Grid>
                         </StackPanel>
                     </Border>
 

@@ -29,7 +29,8 @@ namespace CoursesDekstopApp
                     services.AddSingleton<MainViewModel>();
                     
                     services.AddTransient<IStudentService, StudentServiceImpl>();
-    
+                    
+                    services.AddTransient<IGroupService, GroupServiceImpl>();
                 })
                 .Build();
         }

@@ -58,6 +58,11 @@ namespace CoursesDekstopApp.viewModels
         [ObservableProperty]
         private ObservableCollection<Student> _paymentStatusStudents = new();
         
+        [ObservableProperty]
+        private ObservableCollection<Student> _studentsLearningGerman = new();
+        [ObservableProperty]
+        private ObservableCollection<Student> _studentsLearningMultipleLanguages = new();
+        
         public MainViewModel(ApplicationDbContext context)
         {   
             _context = context;
@@ -365,6 +370,40 @@ namespace CoursesDekstopApp.viewModels
                 .Where(s => s.HasDiscount == true || s.DiscountPercentage > 0)
                 .ToListAsync();
             UpdatePaymentStatusList(students);
+        }
+        
+        [RelayCommand]
+        private async Task GetStudentsByLanguageStatsAsync()
+        {
+            try
+            {
+                var germanStudents = await _context.Students
+                    .Where(s => s.Enrollments.Any(e => e.Group.Level.Language.Name == "Німецька"))
+                    .Distinct()
+                    .ToListAsync();
+                
+                StudentsLearningGerman.Clear();
+                foreach (var s in germanStudents) StudentsLearningGerman.Add(s);
+                
+                var multiLanguageStudents = await _context.Students
+                    .Where(s => s.Enrollments
+                        .Select(e => e.Group.Level.LanguageId)
+                        .Distinct()
+                        .Count() > 1)
+                    .ToListAsync();
+
+                StudentsLearningMultipleLanguages.Clear();
+                foreach (var s in multiLanguageStudents) StudentsLearningMultipleLanguages.Add(s);
+
+                if (StudentsLearningGerman.Count == 0 && StudentsLearningMultipleLanguages.Count == 0)
+                {
+                    MessageBox.Show("Слухачів за цими критеріями не знайдено.");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Помилка виконання запиту 7: {ex.Message}");
+            }
         }
     }
 }
